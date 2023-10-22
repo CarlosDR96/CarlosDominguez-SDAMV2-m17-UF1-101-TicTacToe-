@@ -9,6 +9,7 @@ public class GameManager : MonoBehaviour
     public bool isCubeTurn = true;
     public bool win = false;
     public TextMeshProUGUI label;
+    public TextMeshProUGUI label2;
     public Cell[] cells;
     public GameObject restartButton;
     public GameObject backToMenuButton;
@@ -16,7 +17,9 @@ public class GameManager : MonoBehaviour
     public AudioClip clipWin;
     public AudioClip clipDraw;
     public int flag;
-    private bool waitingForAIMove = false;
+    
+    public int flag2;
+    private bool waitingForAIMove;
 
     void Start()
     {
@@ -24,7 +27,18 @@ public class GameManager : MonoBehaviour
         restartButton.SetActive(false);
         backToMenuButton.SetActive(false);
         flag = PlayerPrefs.GetInt("AI", 1);
+        flag2 = PlayerPrefs.GetInt("Sphere", 1);
         Debug.Log("FLAG: "+ flag );
+        waitingForAIMove = false;
+
+        if (flag2 == 1)
+        {
+            label2.text = "You are Cube";
+        }
+        else
+        {
+            label2.text = "You are a Sphere";
+        }
     }
 
     // Suponiendo que las cells se disponen de la siguiente forma:
@@ -89,11 +103,15 @@ public class GameManager : MonoBehaviour
         isCubeTurn = !isCubeTurn;
         if (isCubeTurn)
         {
-            if(flag == 1)
+            if(flag == 1 && flag2 == 1)
             {
                 label.text = "Cube's turn (Player)";
             }
-            else
+            else if(flag == 1 && flag2 != 1)
+            {
+                label.text = "Cube's turn (AI)";
+            }
+            else if(flag != 1)
             {
                 label.text = "Cube's turn (Player1)";
             }
@@ -101,11 +119,15 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            if(flag == 1)
+            if(flag == 1 && flag2 == 1)
             {
                 label.text = "sphere's turn (IA)";
             }
-            else
+            else if(flag == 1 && flag2 != 1)
+            {
+                label.text = "Sphere's turn (Player)";
+            }
+            else if(flag != 1)
             {
                 label.text = "Sphere's turn (Player2)";
             }
@@ -133,32 +155,61 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!isCubeTurn && flag == 1 && !waitingForAIMove)
+        if ((isCubeTurn && flag == 1 && flag2 !=1) || (!isCubeTurn && flag == 1 && flag2 ==1) && !waitingForAIMove)
         {
-            // Llama a la función MakeDelayedMove después de 5 segundos.
+            Debug.Log("Calling MakeDelayedMove");
+            // Llama a la función MakeDelayedMove después de 2 segundos.
             waitingForAIMove= true;
-            Invoke("MakeDelayedMove", 2f);
+            Invoke("MakeDelayedMove", 3f);
         }
     }
+    
+    
 
     void MakeDelayedMove()
     {
-        if (!isCubeTurn && flag == 1 && !win)
+        Debug.Log("MakeDelayedMove called");
+        if (!isCubeTurn)
         {
-            // Suponiendo que has definido una función GetRandomCellIndex() que devuelve un índice de celda al azar.
-            int randomCellIndex = GetRandomCellIndex();
-
-            // Asegúrate de que el índice esté dentro del rango válido.
-            if (randomCellIndex >= 0 && randomCellIndex < cells.Length)
+            if (flag == 1 && flag2 == 1 && !win)
             {
-                // Simula un clic en la celda al azar.
-                cells[randomCellIndex].OnMouseDown();
-                if (cells[randomCellIndex].status != 0) { 
-                    waitingForAIMove= false;
-                }
+                // Suponiendo que has definido una función GetRandomCellIndex() que devuelve un índice de celda al azar.
+                int randomCellIndex = GetRandomCellIndex();
+
+                // Asegúrate de que el índice esté dentro del rango válido.
+                if (randomCellIndex >= 0 && randomCellIndex < cells.Length)
+                {
+                    // Simula un clic en la celda al azar.
+                    cells[randomCellIndex].OnMouseDown();
+                    if (cells[randomCellIndex].status != 0) { 
+                        //waitingForAIMove = false;
+                    }
                 
+                }
+            }
+            
+        }
+
+        else if (isCubeTurn)
+        {
+            if (flag == 1 && flag2 != 1 && !win)
+            {
+                // Suponiendo que has definido una función GetRandomCellIndex() que devuelve un índice de celda al azar.
+                int randomCellIndex = GetRandomCellIndex();
+
+                // Asegúrate de que el índice esté dentro del rango válido.
+                if (randomCellIndex >= 0 && randomCellIndex < cells.Length)
+                {
+                    // Simula un clic en la celda al azar.
+                    cells[randomCellIndex].OnMouseDown();
+                    if (cells[randomCellIndex].status != 0) { 
+                        //waitingForAIMove = false;
+                    }
+                
+                }
             }
         }
+        waitingForAIMove = false;
     }
 
     int GetRandomCellIndex()
